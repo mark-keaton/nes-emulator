@@ -14,6 +14,13 @@ impl CPU {
     }
 
     pub fn interpret(&mut self, program: Vec<u8>) {
-        todo!("")
+        loop {
+            let opscode = program[self.program_counter as usize];
+            self.program_counter += 1;
+
+            match opscode {
+                _ => todo!()
+            }
+        }
     }
 }
