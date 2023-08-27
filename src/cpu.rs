@@ -6,6 +6,7 @@ mod register;
 
 pub struct CPU {
     pub register_a: Register,
+    pub register_x: Register,
     pub status: ProcessorStatus,
     pub program_counter: u8,
 }
@@ -14,6 +15,7 @@ impl CPU {
     pub fn new() -> Self {
         CPU {
             register_a: Register::new(0),
+            register_x: Register::new(0),
             status: ProcessorStatus::new(0),
             program_counter: 0,
         }
@@ -28,6 +30,14 @@ impl CPU {
                 0x00 => {
                     return;
                 }
+                0xAA => {
+                    self.register_x = self.register_a;
+
+                    self.status = self.status.set_zero_flag(self.register_x.value() == 0);
+                    self.status = self
+                        .status
+                        .set_negative_flag(self.register_x.bit_7_is_set());
+                }
                 0xA9 => {
                     let param = program[self.program_counter as usize];
                     self.program_counter += 1;
@@ -37,7 +47,6 @@ impl CPU {
                     self.status = self
                         .status
                         .set_negative_flag(self.register_a.bit_7_is_set());
-                    println!("");
                 }
                 _ => todo!(),
             }
@@ -48,6 +57,15 @@ impl CPU {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_0xaa_tax_move_a_to_x() {
+        let mut cpu = CPU::new();
+        cpu.register_a = Register::new(10);
+        cpu.interpret(vec![0xaa, 0x00]);
+
+        assert_eq!(cpu.register_x.value(), 10)
+    }
 
     #[test]
     fn test_0xa9_lda_immediate_load_data() {

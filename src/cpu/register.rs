@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct Register(u8);
 
 impl Register {
