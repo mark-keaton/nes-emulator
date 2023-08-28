@@ -8,7 +8,7 @@ fn update_zero_and_negative_flags(cpu: &mut CPU, register: Register) -> () {
 }
 
 pub fn inx(cpu: &mut CPU) -> () {
-    cpu.register_x += Register::new(1);
+    cpu.register_x.increment();
     update_zero_and_negative_flags(cpu, cpu.register_a);
     ()
 }

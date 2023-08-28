@@ -1,14 +1,5 @@
-use std::ops::AddAssign;
-
 #[derive(Copy, Clone)]
 pub struct Register(u8);
-
-impl AddAssign for Register {
-    fn add_assign(&mut self, rhs: Self) {
-        self.0 = self.0 + rhs.0;
-        ()
-    }
-}
 
 impl Register {
     pub fn new(val: u8) -> Self {
@@ -17,6 +8,14 @@ impl Register {
 
     pub fn value(&self) -> u8 {
         self.0
+    }
+
+    pub fn increment(&mut self) -> () {
+        self.0 = match self.0.checked_add(1) {
+            None => 0, // Allow overflow to reset
+            Some(x) => x,
+        };
+        ()
     }
 
     pub fn is_zero(&self) -> bool {
