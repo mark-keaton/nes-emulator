@@ -15,7 +15,7 @@ pub struct CPU {
     pub register_y: Register,
     pub status: ProcessorStatus,
     pub program_counter: u16,
-    memory: Memory,
+    pub memory: Memory,
 }
 
 impl CPU {
@@ -64,6 +64,7 @@ impl CPU {
                 .expect(&format!("OpCode {:x} is not recognized", code));
 
             self.program_counter += 1;
+            let program_counter_state = self.program_counter;
 
             match code {
                 0x00 => {
@@ -73,6 +74,9 @@ impl CPU {
                     opscodes::registers::lda(self, &opcode.mode);
                     self.program_counter += 1;
                 }
+                0x85 | 0x95 | 0x8d | 0x9d | 0x99 | 0x81 | 0x91 => {
+                    opscodes::registers::sta(self, &opcode.mode);
+                }
                 0xAA => {
                     opscodes::registers::tax(self);
                 }
@@ -80,6 +84,10 @@ impl CPU {
                     opscodes::registers::inx(self);
                 }
                 _ => todo!(),
+            }
+
+            if program_counter_state == self.program_counter {
+                self.program_counter += (opcode.len - 1) as u16;
             }
         }
     }
