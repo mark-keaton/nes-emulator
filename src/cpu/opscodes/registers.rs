@@ -7,6 +7,12 @@ fn update_zero_and_negative_flags(cpu: &mut CPU, register: Register) -> () {
     ()
 }
 
+pub fn inx(cpu: &mut CPU) -> () {
+    cpu.register_x += Register::new(1);
+    update_zero_and_negative_flags(cpu, cpu.register_a);
+    ()
+}
+
 pub fn lda(cpu: &mut CPU, program: &Vec<u8>) -> () {
     let param = program[cpu.program_counter as usize];
     cpu.program_counter += 1;

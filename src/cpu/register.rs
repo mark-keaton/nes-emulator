@@ -1,5 +1,14 @@
+use std::ops::AddAssign;
+
 #[derive(Copy, Clone)]
 pub struct Register(u8);
+
+impl AddAssign for Register {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 = self.0 + rhs.0;
+        ()
+    }
+}
 
 impl Register {
     pub fn new(val: u8) -> Self {

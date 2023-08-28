@@ -37,6 +37,9 @@ impl CPU {
                 0xAA => {
                     opscodes::registers::tax(self);
                 }
+                0xE8 => {
+                    opscodes::registers::inx(self);
+                }
                 _ => todo!(),
             }
         }
@@ -70,5 +73,12 @@ mod test {
         let mut cpu = CPU::new();
         cpu.interpret(vec![0xa9, 0x00, 0x00]);
         assert_eq!(cpu.status.bit_1_is_set(), true);
+    }
+
+    #[test]
+    fn test_0xe8_inx_increments_x_register() {
+        let mut cpu = CPU::new();
+        cpu.interpret(vec![0xE8, 0xE8, 0x00]);
+        assert_eq!(cpu.register_x.value(), 2);
     }
 }
