@@ -1,3 +1,4 @@
+use crate::cpu::opscodes::addressing_mode::AddressingMode;
 use crate::cpu::Register;
 use crate::cpu::CPU;
 
@@ -13,11 +14,10 @@ pub fn inx(cpu: &mut CPU) -> () {
     ()
 }
 
-pub fn lda(cpu: &mut CPU) -> () {
-    let param = cpu.memory.read(cpu.program_counter);
+pub fn lda(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let param = cpu.memory.read(addr);
     cpu.register_a = Register::new(param);
-    cpu.program_counter += 1;
-
     update_zero_and_negative_flags(cpu, cpu.register_a);
     ()
 }

@@ -16,7 +16,7 @@ pub enum AddressingMode {
 }
 
 impl AddressingMode {
-    fn get_operand_address(cpu: &CPU, mode: &AddressingMode) -> u16 {
+    pub fn get_operand_address(cpu: &CPU, mode: &AddressingMode) -> u16 {
         match mode {
             AddressingMode::Immediate => cpu.program_counter,
 

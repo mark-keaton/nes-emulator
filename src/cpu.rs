@@ -1,6 +1,8 @@
 use crate::cpu::memory::Memory;
+use crate::cpu::opscodes::{OpCode, OPCODES_MAP};
 use crate::cpu::processor_status::ProcessorStatus;
 use crate::cpu::register::Register;
+use std::collections::HashMap;
 
 mod memory;
 mod opscodes;
@@ -53,16 +55,23 @@ impl CPU {
     }
 
     pub fn run(&mut self) {
+        let ref opcodes: HashMap<u8, &'static OpCode> = *OPCODES_MAP;
+
         loop {
-            let opscode = self.memory.read(self.program_counter);
+            let code = self.memory.read(self.program_counter);
+            let opcode = opcodes
+                .get(&code)
+                .expect(&format!("OpCode {:x} is not recognized", code));
+
             self.program_counter += 1;
 
-            match opscode {
+            match code {
                 0x00 => {
                     return;
                 }
-                0xA9 => {
-                    opscodes::registers::lda(self);
+                0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
+                    opscodes::registers::lda(self, &opcode.mode);
+                    self.program_counter += 1;
                 }
                 0xAA => {
                     opscodes::registers::tax(self);
