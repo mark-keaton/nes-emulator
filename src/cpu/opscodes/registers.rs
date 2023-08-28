@@ -13,10 +13,10 @@ pub fn inx(cpu: &mut CPU) -> () {
     ()
 }
 
-pub fn lda(cpu: &mut CPU, program: &Vec<u8>) -> () {
-    let param = program[cpu.program_counter as usize];
-    cpu.program_counter += 1;
+pub fn lda(cpu: &mut CPU) -> () {
+    let param = cpu.memory.read(cpu.program_counter);
     cpu.register_a = Register::new(param);
+    cpu.program_counter += 1;
 
     update_zero_and_negative_flags(cpu, cpu.register_a);
     ()
