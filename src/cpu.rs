@@ -1,6 +1,7 @@
 use crate::cpu::processor_status::ProcessorStatus;
 use crate::cpu::register::Register;
 
+mod opscodes;
 mod processor_status;
 mod register;
 
@@ -30,23 +31,11 @@ impl CPU {
                 0x00 => {
                     return;
                 }
-                0xAA => {
-                    self.register_x = self.register_a;
-
-                    self.status = self.status.set_zero_flag(self.register_x.value() == 0);
-                    self.status = self
-                        .status
-                        .set_negative_flag(self.register_x.bit_7_is_set());
-                }
                 0xA9 => {
-                    let param = program[self.program_counter as usize];
-                    self.program_counter += 1;
-                    self.register_a = Register::new(param);
-
-                    self.status = self.status.set_zero_flag(self.register_a.value() == 0);
-                    self.status = self
-                        .status
-                        .set_negative_flag(self.register_a.bit_7_is_set());
+                    opscodes::registers::lda(self, &program);
+                }
+                0xAA => {
+                    opscodes::registers::tax(self);
                 }
                 _ => todo!(),
             }

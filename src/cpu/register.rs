@@ -10,6 +10,10 @@ impl Register {
         self.0
     }
 
+    pub fn is_zero(&self) -> bool {
+        self.0 == 0
+    }
+
     pub fn bit_0_is_set(&self) -> bool {
         self.0 & 0b0000_0001 != 0
     }
