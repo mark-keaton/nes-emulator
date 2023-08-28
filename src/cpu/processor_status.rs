@@ -1,13 +1,9 @@
 #[derive(Copy, Clone)]
-pub struct ProcessorStatus(u8);
+pub struct ProcessorStatus(pub u8);
 
 impl ProcessorStatus {
     pub fn new(val: u8) -> Self {
         ProcessorStatus(val)
-    }
-
-    pub fn value(&self) -> u8 {
-        self.0
     }
 
     pub fn bit_0_is_set(&self) -> bool {

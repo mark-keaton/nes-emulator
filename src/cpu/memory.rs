@@ -1,5 +1,5 @@
-#[derive(Copy, Clone)]
-pub struct Memory([u8; 0xFFFF]);
+#[derive(Copy, Clone, Debug)]
+pub struct Memory(pub [u8; 0xFFFF]);
 
 impl Memory {
     pub fn new() -> Self {
@@ -12,7 +12,7 @@ impl Memory {
 
     pub fn read_u16(&self, addr: u16) -> u16 {
         let lo = self.read(addr);
-        let hi = self.read(addr + 1);
+        let hi = self.read(addr.wrapping_add(1));
         u16::from_le_bytes([lo, hi])
     }
 
@@ -24,7 +24,7 @@ impl Memory {
     pub fn write_u16(&mut self, addr: u16, data: u16) {
         let le_data: [u8; 2] = data.to_le_bytes();
         self.write(addr, le_data[0]);
-        self.write(addr + 1, le_data[1]);
+        self.write(addr.wrapping_add(1), le_data[1]);
         ()
     }
 

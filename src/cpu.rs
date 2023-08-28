@@ -10,6 +10,7 @@ mod register;
 pub struct CPU {
     pub register_a: Register,
     pub register_x: Register,
+    pub register_y: Register,
     pub status: ProcessorStatus,
     pub program_counter: u16,
     memory: Memory,
@@ -26,6 +27,7 @@ impl CPU {
         CPU {
             register_a: Register::new(0),
             register_x: Register::new(0),
+            register_y: Register::new(0),
             status: ProcessorStatus::new(0),
             program_counter: 0,
             memory: Memory::new(),
@@ -47,7 +49,6 @@ impl CPU {
         self.register_a = Register::new(0);
         self.register_x = Register::new(0);
         self.status = ProcessorStatus::new(0);
-
         self.program_counter = self.memory.read_u16(CPU::RESET_VECTOR);
     }
 
@@ -84,14 +85,14 @@ mod test {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0x0a, 0xaa, 0x00]);
 
-        assert_eq!(cpu.register_x.value(), 10)
+        assert_eq!(cpu.register_x.0, 10)
     }
 
     #[test]
     fn test_0xa9_lda_immediate_load_data() {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0x05, 0x00]);
-        assert_eq!(cpu.register_a.value(), 0x05);
+        assert_eq!(cpu.register_a.0, 0x05);
         assert_eq!(cpu.status.bit_1_is_set(), false);
         assert_eq!(cpu.status.bit_7_is_set(), false);
     }
@@ -107,7 +108,7 @@ mod test {
     fn test_0xe8_inx_increments_x_register() {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xE8, 0xE8, 0x00]);
-        assert_eq!(cpu.register_x.value(), 2);
+        assert_eq!(cpu.register_x.0, 2);
     }
 
     #[test]
@@ -115,7 +116,7 @@ mod test {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
 
-        assert_eq!(cpu.register_x.value(), 0xc1)
+        assert_eq!(cpu.register_x.0, 0xc1)
     }
 
     #[test]
@@ -123,6 +124,6 @@ mod test {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0xe8, 0x00]);
 
-        assert_eq!(cpu.register_x.value(), 1)
+        assert_eq!(cpu.register_x.0, 1)
     }
 }

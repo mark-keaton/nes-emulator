@@ -1,20 +1,13 @@
 #[derive(Copy, Clone)]
-pub struct Register(u8);
+pub struct Register(pub u8);
 
 impl Register {
     pub fn new(val: u8) -> Self {
         Register(val)
     }
 
-    pub fn value(&self) -> u8 {
-        self.0
-    }
-
     pub fn increment(&mut self) -> () {
-        self.0 = match self.0.checked_add(1) {
-            None => 0, // Allow overflow to reset
-            Some(x) => x,
-        };
+        self.0 = self.0.wrapping_add(1);
         ()
     }
 
