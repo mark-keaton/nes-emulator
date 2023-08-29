@@ -1,5 +1,19 @@
+use std::fmt;
+
 #[derive(Copy, Clone)]
 pub struct ProcessorStatus(pub u8);
+
+impl fmt::Debug for ProcessorStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:08b}", self.0)
+    }
+}
+
+impl fmt::Display for ProcessorStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:08b}", self.0)
+    }
+}
 
 impl ProcessorStatus {
     pub fn new(val: u8) -> Self {
@@ -103,6 +117,13 @@ impl ProcessorStatus {
             6 => ProcessorStatus(self.0 & 0b1011_1111),
             7 => ProcessorStatus(self.0 & 0b0111_1111),
             _ => panic!("Out of bounds"),
+        }
+    }
+
+    pub fn set_carry_flag(&mut self, state: bool) -> ProcessorStatus {
+        match state {
+            true => self.set_bit_at(0),
+            false => self.unset_bit_at(0),
         }
     }
 

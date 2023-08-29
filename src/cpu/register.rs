@@ -1,5 +1,19 @@
+use std::fmt;
+
 #[derive(Copy, Clone)]
 pub struct Register(pub u8);
+
+impl fmt::Debug for Register {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:08b}", self.0)
+    }
+}
+
+impl fmt::Display for Register {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:08b}", self.0)
+    }
+}
 
 impl Register {
     pub fn new(val: u8) -> Self {
