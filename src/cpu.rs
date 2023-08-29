@@ -103,6 +103,12 @@ impl CPU {
                 0x85 | 0x95 | 0x8d | 0x9d | 0x99 | 0x81 | 0x91 => {
                     opscodes::registers::sta(self, &opcode.mode);
                 }
+                0x86 | 0x96 | 0x8e => {
+                    opscodes::registers::stx(self, &opcode.mode);
+                }
+                0x84 | 0x94 | 0x8c => {
+                    opscodes::registers::sty(self, &opcode.mode);
+                }
                 0xAA => {
                     opscodes::registers::tax(self);
                 }
@@ -300,5 +306,26 @@ mod test {
         assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag not set
         assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag not set
         assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag set
+    }
+
+    #[test]
+    fn test_sta_zero_page() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x05, 0x85, 0x10, 0x00]);
+        assert_eq!(cpu.memory.read(0x10), 0x05); // Memory at 0x10 should be 0x05
+    }
+
+    #[test]
+    fn test_sta_negative_value() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x80, 0x85, 0x20, 0x00]);
+        assert_eq!(cpu.memory.read(0x20), 0x80); // Memory at 0x20 should be 0x80
+    }
+
+    #[test]
+    fn test_sta_zero_value() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x00, 0x85, 0x30, 0x00]);
+        assert_eq!(cpu.memory.read(0x30), 0x00); // Memory at 0x30 should be 0x00
     }
 }

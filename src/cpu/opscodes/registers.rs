@@ -94,6 +94,18 @@ pub fn sta(cpu: &mut CPU, mode: &AddressingMode) -> () {
     ()
 }
 
+pub fn stx(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    cpu.memory.write(addr, cpu.register_x.0);
+    ()
+}
+
+pub fn sty(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    cpu.memory.write(addr, cpu.register_y.0);
+    ()
+}
+
 pub fn tax(cpu: &mut CPU) -> () {
     cpu.register_x = cpu.register_a;
     update_zero_and_negative_flags(cpu, cpu.register_x);
