@@ -24,6 +24,13 @@ pub fn cpx(cpu: &mut CPU, mode: &AddressingMode) -> () {
     ()
 }
 
+pub fn cpy(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let operand = cpu.memory.read(addr);
+    update_carry_zero_and_negative_flags(cpu, operand, cpu.register_y);
+    ()
+}
+
 pub fn inx(cpu: &mut CPU) -> () {
     cpu.register_x.increment();
     update_zero_and_negative_flags(cpu, cpu.register_a);
@@ -43,6 +50,14 @@ pub fn ldx(cpu: &mut CPU, mode: &AddressingMode) -> () {
     let param = cpu.memory.read(addr);
     cpu.register_x = Register::new(param);
     update_zero_and_negative_flags(cpu, cpu.register_x);
+    ()
+}
+
+pub fn ldy(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let param = cpu.memory.read(addr);
+    cpu.register_y = Register::new(param);
+    update_zero_and_negative_flags(cpu, cpu.register_y);
     ()
 }
 

@@ -74,6 +74,10 @@ impl CPU {
                     opscodes::registers::cpx(self, &opcode.mode);
                     self.program_counter += 1;
                 }
+                0xC0 | 0xC4 | 0xCC => {
+                    opscodes::registers::cpy(self, &opcode.mode);
+                    self.program_counter += 1;
+                }
                 0xE8 => {
                     opscodes::registers::inx(self);
                 }
@@ -83,6 +87,10 @@ impl CPU {
                 }
                 0xA2 | 0xA6 | 0xB6 | 0xAE | 0xBE => {
                     opscodes::registers::ldx(self, &opcode.mode);
+                    self.program_counter += 1;
+                }
+                0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => {
+                    opscodes::registers::ldy(self, &opcode.mode);
                     self.program_counter += 1;
                 }
                 0x85 | 0x95 | 0x8d | 0x9d | 0x99 | 0x81 | 0x91 => {
@@ -176,6 +184,36 @@ mod test {
     fn test_cpx_x_less_than_memory() {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xA2, 0x01, 0xE0, 0x40, 0x00]);
+
+        assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag not set
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag not set
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag set
+    }
+
+    #[test]
+    fn test_cpy_y_greater_than_memory() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA0, 0x80, 0xC0, 0x40, 0x00]);
+
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag set
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag not set
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag not set
+    }
+
+    #[test]
+    fn test_cpy_y_equals_memory() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA0, 0x40, 0xC0, 0x40, 0x00]);
+
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag set
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag set
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag not set
+    }
+
+    #[test]
+    fn test_cpy_y_less_than_memory() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA0, 0x01, 0xC0, 0x40, 0x00]);
 
         assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag not set
         assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag not set
