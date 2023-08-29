@@ -88,6 +88,9 @@ impl CPU {
                 0xE8 => {
                     opscodes::registers::inx(self);
                 }
+                0xC8 => {
+                    opscodes::registers::iny(self);
+                }
                 0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
                     opscodes::registers::lda(self, &opcode.mode);
                 }
@@ -142,13 +145,6 @@ mod test {
     }
 
     #[test]
-    fn test_0xe8_inx_increments_x_register() {
-        let mut cpu = CPU::new();
-        cpu.load_and_run(vec![0xE8, 0xE8, 0x00]);
-        assert_eq!(cpu.register_x.0, 2);
-    }
-
-    #[test]
     fn test_5_ops_working_together() {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
@@ -157,11 +153,33 @@ mod test {
     }
 
     #[test]
+    fn test_inx_increments_x_register() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xE8, 0xE8, 0x00]);
+        assert_eq!(cpu.register_x.0, 2);
+    }
+
+    #[test]
     fn test_inx_overflow() {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0xe8, 0x00]);
 
         assert_eq!(cpu.register_x.0, 1)
+    }
+
+    #[test]
+    fn test_iny_increments_y_register() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xC8, 0xC8, 0x00]);
+        assert_eq!(cpu.register_y.0, 2);
+    }
+
+    #[test]
+    fn test_iny_overflow() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa0, 0xff, 0xaa, 0xc8, 0xc8, 0x00]);
+
+        assert_eq!(cpu.register_y.0, 1)
     }
 
     #[test]

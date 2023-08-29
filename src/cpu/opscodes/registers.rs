@@ -58,6 +58,12 @@ pub fn inx(cpu: &mut CPU) -> () {
     ()
 }
 
+pub fn iny(cpu: &mut CPU) -> () {
+    cpu.register_y.increment();
+    update_zero_and_negative_flags(cpu, cpu.register_y);
+    ()
+}
+
 pub fn lda(cpu: &mut CPU, mode: &AddressingMode) -> () {
     let addr = AddressingMode::get_operand_address(cpu, mode);
     let param = cpu.memory.read(addr);
