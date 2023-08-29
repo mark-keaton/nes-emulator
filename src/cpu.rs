@@ -81,6 +81,9 @@ impl CPU {
                 0xCA => {
                     opscodes::registers::dex(self);
                 }
+                0x88 => {
+                    opscodes::registers::dey(self);
+                }
                 0xE8 => {
                     opscodes::registers::inx(self);
                 }
@@ -166,7 +169,7 @@ mod test {
     #[test]
     fn test_0xca_dex_decrements_x_register() {
         let mut cpu = CPU::new();
-        cpu.load_and_run(vec![0xa9, 0x02, 0xca, 0x00]); // LDA #2 -> TAX -> DEX
+        cpu.load_and_run(vec![0xa2, 0x02, 0xca, 0x00]);
 
         assert_eq!(cpu.register_x.0, 1);
     }
@@ -174,9 +177,25 @@ mod test {
     #[test]
     fn test_dex_underflow() {
         let mut cpu = CPU::new();
-        cpu.load_and_run(vec![0xa9, 0x00, 0xca, 0x00]); // LDA #0 -> TAX -> DEX
+        cpu.load_and_run(vec![0xa2, 0x00, 0xca, 0x00]);
 
         assert_eq!(cpu.register_x.0, 255);
+    }
+
+    #[test]
+    fn test_0x88_dey_decrements_x_register() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa0, 0x02, 0x88, 0x00]);
+
+        assert_eq!(cpu.register_y.0, 1);
+    }
+
+    #[test]
+    fn test_dey_underflow() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa0, 0x00, 0x88, 0x00]);
+
+        assert_eq!(cpu.register_y.0, 255);
     }
 
     #[test]

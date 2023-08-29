@@ -37,6 +37,12 @@ pub fn dex(cpu: &mut CPU) -> () {
     ()
 }
 
+pub fn dey(cpu: &mut CPU) -> () {
+    cpu.register_y.decrement();
+    update_zero_and_negative_flags(cpu, cpu.register_y);
+    ()
+}
+
 pub fn inx(cpu: &mut CPU) -> () {
     cpu.register_x.increment();
     update_zero_and_negative_flags(cpu, cpu.register_x);
