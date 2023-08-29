@@ -20,6 +20,11 @@ impl Register {
         Register(val)
     }
 
+    pub fn decrement(&mut self) -> () {
+        self.0 = self.0.wrapping_sub(1);
+        ()
+    }
+
     pub fn increment(&mut self) -> () {
         self.0 = self.0.wrapping_add(1);
         ()

@@ -31,9 +31,15 @@ pub fn cpy(cpu: &mut CPU, mode: &AddressingMode) -> () {
     ()
 }
 
+pub fn dex(cpu: &mut CPU) -> () {
+    cpu.register_x.decrement();
+    update_zero_and_negative_flags(cpu, cpu.register_x);
+    ()
+}
+
 pub fn inx(cpu: &mut CPU) -> () {
     cpu.register_x.increment();
-    update_zero_and_negative_flags(cpu, cpu.register_a);
+    update_zero_and_negative_flags(cpu, cpu.register_x);
     ()
 }
 
