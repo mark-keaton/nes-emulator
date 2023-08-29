@@ -111,3 +111,9 @@ pub fn tax(cpu: &mut CPU) -> () {
     update_zero_and_negative_flags(cpu, cpu.register_x);
     ()
 }
+
+pub fn tay(cpu: &mut CPU) -> () {
+    cpu.register_y = cpu.register_a;
+    update_zero_and_negative_flags(cpu, cpu.register_y);
+    ()
+}

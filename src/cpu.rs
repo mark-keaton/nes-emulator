@@ -112,6 +112,9 @@ impl CPU {
                 0xAA => {
                     opscodes::registers::tax(self);
                 }
+                0xA8 => {
+                    opscodes::registers::tay(self);
+                }
                 _ => todo!(),
             }
 
@@ -125,15 +128,6 @@ impl CPU {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn test_0xaa_tax_move_a_to_x() {
-        let mut cpu = CPU::new();
-        cpu.load_and_run(vec![0xa9, 0x0a, 0xaa, 0x00]);
-
-        assert_eq!(cpu.register_x.0, 10)
-    }
-
     #[test]
     fn test_0xa9_lda_immediate_load_data() {
         let mut cpu = CPU::new();
@@ -327,5 +321,21 @@ mod test {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xA9, 0x00, 0x85, 0x30, 0x00]);
         assert_eq!(cpu.memory.read(0x30), 0x00); // Memory at 0x30 should be 0x00
+    }
+
+    #[test]
+    fn test_tax_move_a_to_x() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa9, 0x0a, 0xaa, 0x00]);
+
+        assert_eq!(cpu.register_x.0, 10)
+    }
+
+    #[test]
+    fn test_tay_move_a_to_y() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa9, 0x0a, 0xa8, 0x00]);
+
+        assert_eq!(cpu.register_y.0, 10)
     }
 }
