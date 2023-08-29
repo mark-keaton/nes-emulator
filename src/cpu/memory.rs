@@ -37,4 +37,14 @@ impl Memory {
         let program_copy = &program[..];
         self.0[reserved_program_addresses].copy_from_slice(program_copy);
     }
+
+    pub fn push_to_stack(&mut self, stack_pointer: u8, data: u8) {
+        let stack_addr = (0x0100 + stack_pointer as u16) as usize;
+        self.0[stack_addr] = data;
+    }
+
+    pub fn pull_from_stack(&self, stack_pointer: u8) -> u8 {
+        let stack_addr = (0x0100 + stack_pointer as u16) as usize;
+        self.0[stack_addr]
+    }
 }

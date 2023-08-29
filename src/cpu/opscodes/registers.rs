@@ -88,6 +88,13 @@ pub fn ldy(cpu: &mut CPU, mode: &AddressingMode) -> () {
     ()
 }
 
+pub fn pha(cpu: &mut CPU) -> () {
+    let stack_pointer = cpu.register_s;
+    cpu.memory.push_to_stack(stack_pointer.0, cpu.register_a.0);
+    cpu.register_s.decrement();
+    ()
+}
+
 pub fn sta(cpu: &mut CPU, mode: &AddressingMode) -> () {
     let addr = AddressingMode::get_operand_address(cpu, mode);
     cpu.memory.write(addr, cpu.register_a.0);
@@ -115,5 +122,11 @@ pub fn tax(cpu: &mut CPU) -> () {
 pub fn tay(cpu: &mut CPU) -> () {
     cpu.register_y = cpu.register_a;
     update_zero_and_negative_flags(cpu, cpu.register_y);
+    ()
+}
+
+pub fn tsx(cpu: &mut CPU) -> () {
+    cpu.register_x = cpu.register_s;
+    update_zero_and_negative_flags(cpu, cpu.register_x);
     ()
 }

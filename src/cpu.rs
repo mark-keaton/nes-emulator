@@ -11,6 +11,7 @@ mod register;
 
 pub struct CPU {
     pub register_a: Register,
+    pub register_s: Register,
     pub register_x: Register,
     pub register_y: Register,
     pub status: ProcessorStatus,
@@ -28,6 +29,7 @@ impl CPU {
     pub fn new() -> Self {
         CPU {
             register_a: Register::new(0),
+            register_s: Register::new(0),
             register_x: Register::new(0),
             register_y: Register::new(0),
             status: ProcessorStatus::new(0),
@@ -49,7 +51,9 @@ impl CPU {
 
     pub fn reset(&mut self) {
         self.register_a = Register::new(0);
+        self.register_s = Register::new(0xFF); // Stack
         self.register_x = Register::new(0);
+        self.register_y = Register::new(0);
         self.status = ProcessorStatus::new(0);
         self.program_counter = self.memory.read_u16(CPU::RESET_VECTOR);
     }
@@ -100,6 +104,9 @@ impl CPU {
                 0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => {
                     opscodes::registers::ldy(self, &opcode.mode);
                 }
+                0x48 => {
+                    opscodes::registers::pha(self);
+                }
                 0x85 | 0x95 | 0x8d | 0x9d | 0x99 | 0x81 | 0x91 => {
                     opscodes::registers::sta(self, &opcode.mode);
                 }
@@ -114,6 +121,9 @@ impl CPU {
                 }
                 0xA8 => {
                     opscodes::registers::tay(self);
+                }
+                0xBA => {
+                    opscodes::registers::tsx(self);
                 }
                 _ => todo!(),
             }
@@ -337,5 +347,14 @@ mod test {
         cpu.load_and_run(vec![0xa9, 0x0a, 0xa8, 0x00]);
 
         assert_eq!(cpu.register_y.0, 10)
+    }
+
+    #[test]
+    fn test_tsx_transfer_stack_to_x() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa9, 0x05, 0x48, 0xba, 0x00]);
+
+        assert_eq!(cpu.register_x.0, 0xFE); // Assuming initial stack pointer was 0xFF
+        assert_eq!(cpu.memory.read(0x0100 + 0xFF), 0x05); // Memory at 0xFE should be 0x05
     }
 }
