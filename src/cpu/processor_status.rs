@@ -53,88 +53,121 @@ impl ProcessorStatus {
     }
 
     /// Carry flag
-    pub fn set_0(&mut self, state: bool) -> Self {
+    pub fn set_0(&mut self, _state: bool) -> () {
         todo!()
     }
 
     /// Zero flag
-    pub fn set_1(&mut self, state: bool) -> Self {
+    pub fn set_1(&mut self, state: bool) -> () {
         self.set_zero_flag(state)
     }
 
     /// Interrupt disable flag
-    pub fn set_2(&mut self, state: bool) -> Self {
+    pub fn set_2(&mut self, _state: bool) -> () {
         todo!()
     }
 
     /// Decimal flag
-    pub fn set_3(&mut self, state: bool) -> Self {
+    pub fn set_3(&mut self, _state: bool) -> () {
         todo!()
     }
 
     /// No CPU effect, see: the B flag
-    pub fn set_4(&mut self, state: bool) -> Self {
+    pub fn set_4(&mut self, _state: bool) -> () {
         todo!()
     }
 
     /// No CPU effect, see: the B flag
-    pub fn set_5(&mut self, state: bool) -> Self {
+    pub fn set_5(&mut self, _state: bool) -> () {
         todo!()
     }
 
     /// Overflow flag
-    pub fn set_6(&mut self, state: bool) -> Self {
+    pub fn set_6(&mut self, _state: bool) -> () {
         todo!()
     }
 
     /// Negative flag
-    pub fn set_7(&mut self, state: bool) -> Self {
+    pub fn set_7(&mut self, state: bool) -> () {
         self.set_negative_flag(state)
     }
 
-    pub fn set_bit_at(&mut self, index: usize) -> Self {
-        match index {
-            0 => ProcessorStatus(self.0 | 0b0000_0001),
-            1 => ProcessorStatus(self.0 | 0b0000_0010),
-            2 => ProcessorStatus(self.0 | 0b0000_0100),
-            3 => ProcessorStatus(self.0 | 0b0000_1000),
-            4 => ProcessorStatus(self.0 | 0b0001_0000),
-            5 => ProcessorStatus(self.0 | 0b0010_0000),
-            6 => ProcessorStatus(self.0 | 0b0100_0000),
-            7 => ProcessorStatus(self.0 | 0b1000_0000),
+    pub fn set_bit_at(&mut self, index: usize) -> () {
+        self.0 = match index {
+            0 => self.0 | 0b0000_0001,
+            1 => self.0 | 0b0000_0010,
+            2 => self.0 | 0b0000_0100,
+            3 => self.0 | 0b0000_1000,
+            4 => self.0 | 0b0001_0000,
+            5 => self.0 | 0b0010_0000,
+            6 => self.0 | 0b0100_0000,
+            7 => self.0 | 0b1000_0000,
             _ => panic!("Out of bounds"),
-        }
+        };
+        ()
     }
 
-    pub fn unset_bit_at(&mut self, index: usize) -> Self {
-        match index {
-            0 => ProcessorStatus(self.0 & 0b1111_1110),
-            1 => ProcessorStatus(self.0 & 0b1111_1101),
-            2 => ProcessorStatus(self.0 & 0b1111_1011),
-            3 => ProcessorStatus(self.0 & 0b1111_0111),
-            4 => ProcessorStatus(self.0 & 0b1110_1111),
-            5 => ProcessorStatus(self.0 & 0b1101_1111),
-            6 => ProcessorStatus(self.0 & 0b1011_1111),
-            7 => ProcessorStatus(self.0 & 0b0111_1111),
+    pub fn unset_bit_at(&mut self, index: usize) -> () {
+        self.0 = match index {
+            0 => self.0 & 0b1111_1110,
+            1 => self.0 & 0b1111_1101,
+            2 => self.0 & 0b1111_1011,
+            3 => self.0 & 0b1111_0111,
+            4 => self.0 & 0b1110_1111,
+            5 => self.0 & 0b1101_1111,
+            6 => self.0 & 0b1011_1111,
+            7 => self.0 & 0b0111_1111,
             _ => panic!("Out of bounds"),
-        }
+        };
+        ()
     }
 
-    pub fn set_carry_flag(&mut self, state: bool) -> ProcessorStatus {
+    pub fn get_carry_flag(&self) -> u8 {
+        self.bit_0_is_set() as u8
+    }
+
+    pub fn set_carry_flag(&mut self, state: bool) -> () {
         match state {
             true => self.set_bit_at(0),
             false => self.unset_bit_at(0),
         }
     }
 
-    pub fn set_zero_flag(&mut self, state: bool) -> ProcessorStatus {
+    pub fn get_zero_flag(&self) -> u8 {
+        self.bit_1_is_set() as u8
+    }
+
+    pub fn set_zero_flag(&mut self, state: bool) -> () {
         match state {
             true => self.set_bit_at(1),
             false => self.unset_bit_at(1),
         }
     }
 
-    pub fn set_negative_flag(&mut self, state: bool) -> Self {
+    pub fn get_interupt_disable_flag(&self) -> u8 {
+        self.bit_2_is_set() as u8
+    }
+
+    pub fn get_decimal_flag(&self) -> u8 {
+        self.bit_3_is_set() as u8
+    }
+
+    pub fn get_overflow_flag(&self) -> u8 {
+        self.bit_6_is_set() as u8
+    }
+
+    pub fn set_overflow_flag(&mut self, state: bool) -> () {
+        match state {
+            true => self.set_bit_at(6),
+            false => self.unset_bit_at(6),
+        }
+    }
+
+    pub fn get_negative_flag(&self) -> u8 {
+        self.bit_7_is_set() as u8
+    }
+
+    pub fn set_negative_flag(&mut self, state: bool) -> () {
         match state {
             true => self.set_bit_at(7),
             false => self.unset_bit_at(7),

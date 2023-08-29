@@ -3,17 +3,17 @@ use crate::cpu::Register;
 use crate::cpu::CPU;
 
 fn update_zero_and_negative_flags(cpu: &mut CPU, register: Register) -> () {
-    cpu.status = cpu.status.set_zero_flag(register.is_zero());
-    cpu.status = cpu.status.set_negative_flag(register.bit_7_is_set());
+    cpu.status.set_zero_flag(register.is_zero());
+    cpu.status.set_negative_flag(register.bit_7_is_set());
     ()
 }
 
 fn update_carry_zero_and_negative_flags(cpu: &mut CPU, comparator: u8, register: Register) -> () {
     let difference = (register.0).wrapping_sub(comparator);
     let result = Register::new(difference);
-    cpu.status = cpu.status.set_carry_flag(register.0 >= comparator);
-    cpu.status = cpu.status.set_zero_flag(register.0 == comparator);
-    cpu.status = cpu.status.set_negative_flag(result.bit_7_is_set());
+    cpu.status.set_carry_flag(register.0 >= comparator);
+    cpu.status.set_zero_flag(register.0 == comparator);
+    cpu.status.set_negative_flag(result.bit_7_is_set());
     ()
 }
 

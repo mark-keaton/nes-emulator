@@ -74,6 +74,9 @@ impl CPU {
                 0x00 => {
                     return;
                 }
+                0x69 | 0x65 | 0x75 | 0x6D | 0x7D | 0x79 | 0x61 | 0x71 => {
+                    opscodes::arithmetic_logic::adc(self, &opcode.mode);
+                }
                 0xE0 | 0xE4 | 0xEC => {
                     opscodes::registers::cpx(self, &opcode.mode);
                 }
@@ -106,6 +109,9 @@ impl CPU {
                 }
                 0x48 => {
                     opscodes::registers::pha(self);
+                }
+                0x38 => {
+                    opscodes::status_register::sec(self);
                 }
                 0x85 | 0x95 | 0x8d | 0x9d | 0x99 | 0x81 | 0x91 => {
                     opscodes::registers::sta(self, &opcode.mode);
@@ -147,6 +153,40 @@ impl CPU {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_adc_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x30, 0x69, 0x40, 0x00]); // LDA #0x30 -> ADC #0x40 -> BRK
+        assert_eq!(cpu.register_a.0, 0x70);
+        assert_eq!(cpu.status.bit_0_is_set(), false);
+        assert_eq!(cpu.status.bit_1_is_set(), false);
+        assert_eq!(cpu.status.bit_6_is_set(), false);
+        assert_eq!(cpu.status.bit_7_is_set(), false);
+    }
+
+    #[test]
+    fn test_adc_with_carry() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0xFF, 0x38, 0x69, 0x01, 0x00]);
+        assert_eq!(cpu.register_a.0, 0x01);
+        assert_eq!(cpu.status.bit_0_is_set(), true);
+        assert_eq!(cpu.status.bit_1_is_set(), false);
+        assert_eq!(cpu.status.bit_6_is_set(), false);
+        assert_eq!(cpu.status.bit_7_is_set(), false);
+    }
+
+    #[test]
+    fn test_adc_overflow() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x7F, 0x69, 0x02, 0x00]); // LDA #0x7F -> ADC #0x02 -> BRK
+        assert_eq!(cpu.register_a.0, 0x81);
+        assert_eq!(cpu.status.bit_0_is_set(), false);
+        assert_eq!(cpu.status.bit_1_is_set(), false);
+        assert_eq!(cpu.status.bit_6_is_set(), true);
+        assert_eq!(cpu.status.bit_7_is_set(), true);
+    }
+
     #[test]
     fn test_0xa9_lda_immediate_load_data() {
         let mut cpu = CPU::new();
