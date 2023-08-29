@@ -130,3 +130,21 @@ pub fn tsx(cpu: &mut CPU) -> () {
     update_zero_and_negative_flags(cpu, cpu.register_x);
     ()
 }
+
+pub fn txa(cpu: &mut CPU) -> () {
+    cpu.register_a = cpu.register_x;
+    update_zero_and_negative_flags(cpu, cpu.register_a);
+    ()
+}
+
+pub fn txs(cpu: &mut CPU) -> () {
+    cpu.register_s = cpu.register_x;
+    update_zero_and_negative_flags(cpu, cpu.register_s);
+    ()
+}
+
+pub fn tya(cpu: &mut CPU) -> () {
+    cpu.register_a = cpu.register_y;
+    update_zero_and_negative_flags(cpu, cpu.register_a);
+    ()
+}

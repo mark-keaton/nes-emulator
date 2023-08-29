@@ -125,6 +125,15 @@ impl CPU {
                 0xBA => {
                     opscodes::registers::tsx(self);
                 }
+                0x8A => {
+                    opscodes::registers::txa(self);
+                }
+                0x9A => {
+                    opscodes::registers::txs(self);
+                }
+                0x98 => {
+                    opscodes::registers::tya(self);
+                }
                 _ => todo!(),
             }
 
@@ -356,5 +365,38 @@ mod test {
 
         assert_eq!(cpu.register_x.0, 0xFE); // Assuming initial stack pointer was 0xFF
         assert_eq!(cpu.memory.read(0x0100 + 0xFF), 0x05); // Memory at 0xFE should be 0x05
+    }
+
+    #[test]
+    fn test_txa_transfer_x_to_a() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA2, 0x0A, // LDX #0x0A
+            0x8A, 0x00,
+        ]); // TXA
+
+        assert_eq!(cpu.register_a.0, 0x0A);
+    }
+
+    #[test]
+    fn test_txs_transfer_x_to_s() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA2, 0x0A, // LDX #0x0A
+            0x9A, 0x00,
+        ]); // TXS
+
+        assert_eq!(cpu.register_s.0, 0x0A);
+    }
+
+    #[test]
+    fn test_tya_transfer_y_to_a() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA0, 0x0A, // LDY #0x0A
+            0x98, 0x00,
+        ]); // TYA
+
+        assert_eq!(cpu.register_a.0, 0x0A);
     }
 }
