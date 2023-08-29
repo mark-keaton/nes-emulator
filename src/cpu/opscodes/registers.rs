@@ -43,6 +43,15 @@ pub fn dey(cpu: &mut CPU) -> () {
     ()
 }
 
+pub fn inc(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let param = cpu.memory.read(addr);
+    let result = param.wrapping_add(1);
+    cpu.memory.write(addr, result);
+    update_zero_and_negative_flags(cpu, Register::new(result));
+    ()
+}
+
 pub fn inx(cpu: &mut CPU) -> () {
     cpu.register_x.increment();
     update_zero_and_negative_flags(cpu, cpu.register_x);

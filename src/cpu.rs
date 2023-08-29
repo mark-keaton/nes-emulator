@@ -72,11 +72,9 @@ impl CPU {
                 }
                 0xE0 | 0xE4 | 0xEC => {
                     opscodes::registers::cpx(self, &opcode.mode);
-                    self.program_counter += 1;
                 }
                 0xC0 | 0xC4 | 0xCC => {
                     opscodes::registers::cpy(self, &opcode.mode);
-                    self.program_counter += 1;
                 }
                 0xCA => {
                     opscodes::registers::dex(self);
@@ -84,20 +82,20 @@ impl CPU {
                 0x88 => {
                     opscodes::registers::dey(self);
                 }
+                0xE6 | 0xF6 | 0xEE | 0xFE => {
+                    opscodes::registers::inc(self, &opcode.mode);
+                }
                 0xE8 => {
                     opscodes::registers::inx(self);
                 }
                 0xA9 | 0xA5 | 0xB5 | 0xAD | 0xBD | 0xB9 | 0xA1 | 0xB1 => {
                     opscodes::registers::lda(self, &opcode.mode);
-                    self.program_counter += 1;
                 }
                 0xA2 | 0xA6 | 0xB6 | 0xAE | 0xBE => {
                     opscodes::registers::ldx(self, &opcode.mode);
-                    self.program_counter += 1;
                 }
                 0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => {
                     opscodes::registers::ldy(self, &opcode.mode);
-                    self.program_counter += 1;
                 }
                 0x85 | 0x95 | 0x8d | 0x9d | 0x99 | 0x81 | 0x91 => {
                     opscodes::registers::sta(self, &opcode.mode);
@@ -164,6 +162,34 @@ mod test {
         cpu.load_and_run(vec![0xa9, 0xff, 0xaa, 0xe8, 0xe8, 0x00]);
 
         assert_eq!(cpu.register_x.0, 1)
+    }
+
+    #[test]
+    fn test_inc_zero_page() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x05, 0x85, 0x10, 0xE6, 0x10, 0x00]);
+        assert_eq!(cpu.memory.read(0x10), 0x06); // Memory at 0x10 should be incremented to 0x06
+    }
+
+    #[test]
+    fn test_inc_wraparound() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0xFF, 0x85, 0x20, 0xE6, 0x20, 0x00]);
+        assert_eq!(cpu.memory.read(0x20), 0x00); // Memory at 0x20 should wraparound to 0x00
+    }
+
+    #[test]
+    fn test_inc_zero_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0xFF, 0x85, 0x30, 0xE6, 0x30, 0x00]);
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set
+    }
+
+    #[test]
+    fn test_inc_negative_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x7F, 0x85, 0x40, 0xE6, 0x40, 0x00]);
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set
     }
 
     #[test]
