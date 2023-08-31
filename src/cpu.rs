@@ -191,6 +191,34 @@ mod test {
     }
 
     #[test]
+    fn test_and_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x0C, 0x85, 0x10, 0xA9, 0x0A, 0x25, 0x10, 0x00]);
+        assert_eq!(cpu.register_a.0, 0x08); // 0x0C AND 0x0A = 0x08
+    }
+
+    #[test]
+    fn test_and_zero_result() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x02, 0x85, 0x10, 0xA9, 0x04, 0x25, 0x10, 0x00]);
+        assert_eq!(cpu.register_a.0, 0x00); // 0x02 AND 0x04 = 0x00
+    }
+
+    #[test]
+    fn test_and_zero_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x02, 0x85, 0x10, 0xA9, 0x04, 0x25, 0x10, 0x00]);
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set due to result being 0x00
+    }
+
+    #[test]
+    fn test_and_negative_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x80, 0x85, 0x10, 0xA9, 0xF0, 0x25, 0x10, 0x00]);
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set due to bit 7 of result being 1
+    }
+
+    #[test]
     fn test_0xa9_lda_immediate_load_data() {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0x05, 0x00]);
