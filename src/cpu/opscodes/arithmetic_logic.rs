@@ -1,16 +1,18 @@
 use crate::cpu::opscodes::addressing_mode::AddressingMode;
 use crate::cpu::Register;
 use crate::cpu::CPU;
+use crate::util::shared::Comparison;
+use crate::util::u8_ext::BitwiseU8;
 
-fn update_zero_and_negative_flags(cpu: &mut CPU, register: Register) -> () {
-    cpu.status.set_zero_flag(register.is_zero());
-    cpu.status.set_negative_flag(register.bit_7_is_set());
+fn update_zero_and_negative_flags(cpu: &mut CPU, value: u8) -> () {
+    cpu.status.set_zero_flag(value.is_zero());
+    cpu.status.set_negative_flag(value.bit_7_is_set());
     ()
 }
 
 fn update_carry_zero_and_negative_flags(cpu: &mut CPU, comparator: u8, register: Register) -> () {
     let difference = (register.0).wrapping_sub(comparator);
-    let result = Register::new(difference);
+    let result = difference;
     cpu.status.set_carry_flag(register.0 >= comparator);
     cpu.status.set_zero_flag(register.0 == comparator);
     cpu.status.set_negative_flag(result.bit_7_is_set());
@@ -43,5 +45,29 @@ pub fn and(cpu: &mut CPU, mode: &AddressingMode) -> () {
     let param = cpu.memory.read(addr);
     cpu.register_a.0 = cpu.register_a.0 & param;
 
-    update_zero_and_negative_flags(cpu, cpu.register_a);
+    update_zero_and_negative_flags(cpu, cpu.register_a.0);
+}
+
+pub fn asl(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let mut new_value = 0;
+    let mut bit7 = false;
+
+    match mode {
+        AddressingMode::Accumulator => {
+            let value = cpu.register_a.0;
+            bit7 = value.bit_7_is_set();
+            new_value = value << 1;
+            cpu.register_a.0 = new_value;
+        }
+        _ => {
+            let addr = AddressingMode::get_operand_address(cpu, mode);
+            let value = cpu.memory.read(addr);
+            bit7 = value.bit_7_is_set();
+            new_value = value << 1;
+            cpu.memory.write(addr, new_value);
+        }
+    }
+
+    update_zero_and_negative_flags(cpu, new_value);
+    cpu.status.set_carry_flag(bit7);
 }

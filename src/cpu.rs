@@ -80,6 +80,9 @@ impl CPU {
                 0x29 | 0x25 | 0x35 | 0x2D | 0x3D | 0x39 | 0x21 | 0x31 => {
                     opscodes::arithmetic_logic::and(self, &opcode.mode);
                 }
+                0x0A | 0x06 | 0x16 | 0x0E | 0x1E => {
+                    opscodes::arithmetic_logic::asl(self, &opcode.mode);
+                }
                 0xE0 | 0xE4 | 0xEC => {
                     opscodes::registers::cpx(self, &opcode.mode);
                 }
@@ -156,6 +159,7 @@ impl CPU {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::util::u8_ext::*;
 
     #[test]
     fn test_adc_basic() {
@@ -216,6 +220,41 @@ mod test {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xA9, 0x80, 0x85, 0x10, 0xA9, 0xF0, 0x25, 0x10, 0x00]);
         assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set due to bit 7 of result being 1
+    }
+
+    #[test]
+    fn test_asl_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x01, 0x0A, 0x00]); // LDA #0x01, ASL A
+        assert_eq!(cpu.register_a.0, 0x02); // 0x01 shifted left is 0x02
+    }
+
+    #[test]
+    fn test_asl_zero_result() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x00, 0x0A, 0x00]); // LDA #0x00, ASL A
+        assert_eq!(cpu.register_a.0, 0x00); // 0x00 shifted left remains 0x00
+    }
+
+    #[test]
+    fn test_asl_zero_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x00, 0x0A, 0x00]); // LDA #0x00, ASL A
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set due to result being 0x00
+    }
+
+    #[test]
+    fn test_asl_carry_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x80, 0x0A, 0x00]); // LDA #0x80, ASL A
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set as bit 7 was 1 and shifted out
+    }
+
+    #[test]
+    fn test_asl_negative_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x40, 0x0A, 0x00]); // LDA #0x40, ASL A
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set as result's bit 7 is set
     }
 
     #[test]

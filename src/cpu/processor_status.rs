@@ -1,3 +1,5 @@
+use crate::util::shared::{AdjustBy1, Comparison};
+use crate::util::u8_ext::BitwiseU8;
 use std::fmt;
 
 #[derive(Copy, Clone)]
@@ -20,106 +22,18 @@ impl ProcessorStatus {
         ProcessorStatus(val)
     }
 
-    pub fn bit_0_is_set(&self) -> bool {
-        self.0 & 0b0000_0001 != 0
-    }
-
-    pub fn bit_1_is_set(&self) -> bool {
-        self.0 & 0b0000_0010 != 0
-    }
-
-    pub fn bit_2_is_set(&self) -> bool {
-        self.0 & 0b0000_0100 != 0
-    }
-
-    pub fn bit_3_is_set(&self) -> bool {
-        self.0 & 0b0000_1000 != 0
-    }
-
-    pub fn bit_4_is_set(&self) -> bool {
-        self.0 & 0b0001_0000 != 0
-    }
-
-    pub fn bit_5_is_set(&self) -> bool {
-        self.0 & 0b0010_0000 != 0
-    }
-
-    pub fn bit_6_is_set(&self) -> bool {
-        self.0 & 0b0100_0000 != 0
-    }
-
-    pub fn bit_7_is_set(&self) -> bool {
-        self.0 & 0b1000_0000 != 0
-    }
-
-    /// Carry flag
-    pub fn set_0(&mut self, _state: bool) -> () {
-        todo!()
-    }
-
-    /// Zero flag
-    pub fn set_1(&mut self, state: bool) -> () {
-        self.set_zero_flag(state)
-    }
-
-    /// Interrupt disable flag
-    pub fn set_2(&mut self, _state: bool) -> () {
-        todo!()
-    }
-
-    /// Decimal flag
-    pub fn set_3(&mut self, _state: bool) -> () {
-        todo!()
-    }
-
-    /// No CPU effect, see: the B flag
-    pub fn set_4(&mut self, _state: bool) -> () {
-        todo!()
-    }
-
-    /// No CPU effect, see: the B flag
-    pub fn set_5(&mut self, _state: bool) -> () {
-        todo!()
-    }
-
-    /// Overflow flag
-    pub fn set_6(&mut self, _state: bool) -> () {
-        todo!()
-    }
-
-    /// Negative flag
-    pub fn set_7(&mut self, state: bool) -> () {
-        self.set_negative_flag(state)
-    }
-
     pub fn set_bit_at(&mut self, index: usize) -> () {
-        self.0 = match index {
-            0 => self.0 | 0b0000_0001,
-            1 => self.0 | 0b0000_0010,
-            2 => self.0 | 0b0000_0100,
-            3 => self.0 | 0b0000_1000,
-            4 => self.0 | 0b0001_0000,
-            5 => self.0 | 0b0010_0000,
-            6 => self.0 | 0b0100_0000,
-            7 => self.0 | 0b1000_0000,
-            _ => panic!("Out of bounds"),
-        };
-        ()
+        if index > 7 {
+            panic!("Out of bounds");
+        }
+        self.0 |= 1 << index;
     }
 
     pub fn unset_bit_at(&mut self, index: usize) -> () {
-        self.0 = match index {
-            0 => self.0 & 0b1111_1110,
-            1 => self.0 & 0b1111_1101,
-            2 => self.0 & 0b1111_1011,
-            3 => self.0 & 0b1111_0111,
-            4 => self.0 & 0b1110_1111,
-            5 => self.0 & 0b1101_1111,
-            6 => self.0 & 0b1011_1111,
-            7 => self.0 & 0b0111_1111,
-            _ => panic!("Out of bounds"),
-        };
-        ()
+        if index > 7 {
+            panic!("Out of bounds");
+        }
+        self.0 &= !(1 << index);
     }
 
     pub fn get_carry_flag(&self) -> u8 {
@@ -172,5 +86,75 @@ impl ProcessorStatus {
             true => self.set_bit_at(7),
             false => self.unset_bit_at(7),
         }
+    }
+}
+
+impl AdjustBy1 for ProcessorStatus {
+    fn decrement(&mut self) -> () {
+        self.0 = self.0.wrapping_sub(1);
+        ()
+    }
+
+    fn increment(&mut self) -> () {
+        self.0 = self.0.wrapping_add(1);
+        ()
+    }
+}
+
+impl Comparison for ProcessorStatus {
+    fn is_zero(self) -> bool {
+        self.0 == 0
+    }
+}
+
+impl BitwiseU8 for ProcessorStatus {
+    fn bit_is_set_at(self, index: usize) -> bool {
+        self.0 & (1 << index) != 0
+    }
+
+    fn bit_0_is_set(self) -> bool {
+        self.0 & 0b0000_0001 != 0
+    }
+
+    fn bit_1_is_set(self) -> bool {
+        self.0 & 0b0000_0010 != 0
+    }
+
+    fn bit_2_is_set(self) -> bool {
+        self.0 & 0b0000_0100 != 0
+    }
+
+    fn bit_3_is_set(self) -> bool {
+        self.0 & 0b0000_1000 != 0
+    }
+
+    fn bit_4_is_set(self) -> bool {
+        self.0 & 0b0001_0000 != 0
+    }
+
+    fn bit_5_is_set(self) -> bool {
+        self.0 & 0b0010_0000 != 0
+    }
+
+    fn bit_6_is_set(self) -> bool {
+        self.0 & 0b0100_0000 != 0
+    }
+
+    fn bit_7_is_set(self) -> bool {
+        self.0 & 0b1000_0000 != 0
+    }
+
+    fn set_bit_at(&mut self, index: usize) -> () {
+        if index > 7 {
+            panic!("Out of bounds");
+        }
+        self.0 |= 1 << index;
+    }
+
+    fn unset_bit_at(&mut self, index: usize) -> () {
+        if index > 7 {
+            panic!("Out of bounds");
+        }
+        self.0 &= !(1 << index);
     }
 }
