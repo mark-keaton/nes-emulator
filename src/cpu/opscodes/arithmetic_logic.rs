@@ -37,3 +37,11 @@ pub fn adc(cpu: &mut CPU, mode: &AddressingMode) -> () {
 
     cpu.register_a.0 = result;
 }
+
+pub fn and(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let param = cpu.memory.read(addr);
+    cpu.register_a.0 = cpu.register_a.0 & param;
+
+    update_zero_and_negative_flags(cpu, cpu.register_a);
+}

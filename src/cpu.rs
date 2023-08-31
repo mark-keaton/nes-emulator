@@ -77,6 +77,9 @@ impl CPU {
                 0x69 | 0x65 | 0x75 | 0x6D | 0x7D | 0x79 | 0x61 | 0x71 => {
                     opscodes::arithmetic_logic::adc(self, &opcode.mode);
                 }
+                0x29 | 0x25 | 0x35 | 0x2D | 0x3D | 0x39 | 0x21 | 0x31 => {
+                    opscodes::arithmetic_logic::and(self, &opcode.mode);
+                }
                 0xE0 | 0xE4 | 0xEC => {
                     opscodes::registers::cpx(self, &opcode.mode);
                 }
