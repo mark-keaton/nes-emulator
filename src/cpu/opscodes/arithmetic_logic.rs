@@ -109,3 +109,27 @@ pub fn eor(cpu: &mut CPU, mode: &AddressingMode) -> () {
     cpu.status.set_zero_flag(cpu.register_a.0 == 0);
     cpu.status.set_negative_flag(cpu.register_a.bit_7_is_set());
 }
+
+pub fn lsr(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let mut new_value = 0;
+    let mut bit0 = false;
+
+    match mode {
+        AddressingMode::Accumulator => {
+            let value = cpu.register_a.0;
+            bit0 = value.bit_0_is_set();
+            new_value = value >> 1;
+            cpu.register_a.0 = new_value;
+        }
+        _ => {
+            let addr = AddressingMode::get_operand_address(cpu, mode);
+            let value = cpu.memory.read(addr);
+            bit0 = value.bit_0_is_set();
+            new_value = value >> 1;
+            cpu.memory.write(addr, new_value);
+        }
+    }
+
+    update_zero_and_negative_flags(cpu, new_value);
+    cpu.status.set_carry_flag(bit0);
+}

@@ -125,6 +125,9 @@ impl CPU {
                 0xA0 | 0xA4 | 0xB4 | 0xAC | 0xBC => {
                     opscodes::registers::ldy(self, &opcode.mode);
                 }
+                0x4A | 0x46 | 0x56 | 0x4E | 0x5E => {
+                    opscodes::arithmetic_logic::lsr(self, &opcode.mode);
+                }
                 0x48 => {
                     opscodes::registers::pha(self);
                 }
@@ -552,6 +555,36 @@ mod test {
         assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag not set
         assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag not set
         assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag set
+    }
+
+    #[test]
+    fn test_lsr_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x02, 0x4A, 0x00]); // LDA #0x02, LSR A
+        assert_eq!(cpu.register_a.0, 0x01); // Result should be 0x01
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_lsr_carry_set() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x01, 0x4A, 0x00]); // LDA #0x01, LSR A
+        assert_eq!(cpu.register_a.0, 0x00); // Result should be 0x00
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set as bit 0 was shifted into it
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_lsr_shift_into_carry() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x81, 0x4A, 0x00]); // LDA #0x81, LSR A
+        assert_eq!(cpu.register_a.0, 0x40); // Result should be 0x40
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set as bit 0 of 0x81 was shifted into it
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
     }
 
     #[test]
