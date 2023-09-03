@@ -134,6 +134,9 @@ impl CPU {
                 0x48 => {
                     opscodes::registers::pha(self);
                 }
+                0x2A | 0x26 | 0x36 | 0x2E | 0x3E => {
+                    opscodes::arithmetic_logic::rol(self, &opcode.mode);
+                }
                 0x38 => {
                     opscodes::status_register::sec(self);
                 }
@@ -615,6 +618,36 @@ mod test {
         assert_eq!(cpu.register_a.0, 0x00); // Result should be 0x00
         assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set
         assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_rol_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x40, 0x2A, 0x00]); // LDA #0x40, ROL A
+        assert_eq!(cpu.register_a.0, 0x80); // Result should be 0x80 (0b0100_0000 rotated left becomes 0b1000_0000)
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set due to bit 7 being 1
+        assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag should be clear
+    }
+
+    #[test]
+    fn test_rol_carry_set() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x80, 0x2A, 0x00]); // LDA #0x80, ROL A
+        assert_eq!(cpu.register_a.0, 0x00); // Result should be 0x00 (0b1000_0000 rotated left becomes 0b0000_0000 with carry set)
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set because of the rotation
+    }
+
+    #[test]
+    fn test_rol_with_initial_carry() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x40, 0x38, 0x2A, 0x00]); // LDA #0x40, SEC (set carry), ROL A
+        assert_eq!(cpu.register_a.0, 0x81); // Result should be 0x81 (0b0100_0000 rotated left becomes 0b1000_0000 and carry inserted into bit 0)
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set due to bit 7 being 1
+        assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag should be clear
     }
 
     #[test]
