@@ -104,6 +104,9 @@ impl CPU {
                 0x88 => {
                     opscodes::registers::dey(self);
                 }
+                0x49 | 0x45 | 0x55 | 0x4D | 0x5D | 0x59 | 0x41 | 0x51 => {
+                    opscodes::arithmetic_logic::eor(self, &opcode.mode);
+                }
                 0xE6 | 0xF6 | 0xEE | 0xFE => {
                     opscodes::registers::inc(self, &opcode.mode);
                 }
@@ -372,6 +375,33 @@ mod test {
         assert_eq!(cpu.memory.read(0x10), 0xFE); // Memory at $10 should now be 0xFE
         assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
         assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should still be set as the result remains negative
+    }
+
+    #[test]
+    fn test_eor_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x0F, 0x49, 0xF0, 0x00]); // LDA #0x0F, EOR #0xF0
+        assert_eq!(cpu.register_a.0, 0xFF); // Result should be 0xFF
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set
+    }
+
+    #[test]
+    fn test_eor_zero_result() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0xAA, 0x49, 0xAA, 0x00]); // LDA #0xAA, EOR #0xAA
+        assert_eq!(cpu.register_a.0, 0x00); // Result should be 0x00
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_eor_no_change() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x55, 0x49, 0x00, 0x00]); // LDA #0x55, EOR #0x00
+        assert_eq!(cpu.register_a.0, 0x55); // Result should still be 0x55
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
     }
 
     #[test]
