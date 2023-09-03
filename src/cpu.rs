@@ -140,6 +140,9 @@ impl CPU {
                 0x6A | 0x66 | 0x76 | 0x6E | 0x7E => {
                     opscodes::arithmetic_logic::ror(self, &opcode.mode);
                 }
+                0xE9 | 0xE5 | 0xF5 | 0xED | 0xFD | 0xF9 | 0xE1 | 0xF1 => {
+                    opscodes::arithmetic_logic::sbc(self, &opcode.mode);
+                }
                 0x38 => {
                     opscodes::status_register::sec(self);
                 }
@@ -681,6 +684,36 @@ mod test {
         assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
         assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set due to bit 7 being 1
         assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set because of the rotation
+    }
+
+    #[test]
+    fn test_sbc_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x10, 0xE9, 0x05, 0x00]); // LDA #0x10, SBC #0x05
+        assert_eq!(cpu.register_a.0, 0x0B); // Result should be 0x0B (0x10 - 0x05 = 0x0B)
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set, as no borrow was required
+    }
+
+    #[test]
+    fn test_sbc_borrow_required() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x05, 0xE9, 0x10, 0x00]); // LDA #0x05, SBC #0x10
+        assert_eq!(cpu.register_a.0, 0xF5); // Result will wrap and be 0xF5 (0x05 - 0x10 = -0x0B or 0xF5 in two's complement)
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set because result is negative in two's complement
+        assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag should be clear, indicating a borrow occurred
+    }
+
+    #[test]
+    fn test_sbc_with_initial_carry() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x10, 0x38, 0xE9, 0x05, 0x00]); // LDA #0x10, SEC (set carry), SBC #0x05
+        assert_eq!(cpu.register_a.0, 0x0A); // Result should be 0x0A (0x10 - 0x05 - 1(carry) = 0x0A)
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set, as no borrow was required
     }
 
     #[test]

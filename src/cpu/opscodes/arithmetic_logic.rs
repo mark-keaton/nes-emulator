@@ -24,7 +24,9 @@ pub fn adc(cpu: &mut CPU, mode: &AddressingMode) -> () {
     let carry_value = cpu.status.get_carry_flag();
     let param = cpu.memory.read(addr);
 
-    let temp = cpu.register_a.0 as u16 + param as u16 + carry_value as u16;
+    let temp = (cpu.register_a.0 as u16)
+        .wrapping_add(param as u16)
+        .wrapping_add(carry_value as u16);
     let result = (temp & 0xFF) as u8;
 
     // Setting flags
@@ -193,4 +195,25 @@ pub fn ror(cpu: &mut CPU, mode: &AddressingMode) -> () {
 
     update_zero_and_negative_flags(cpu, new_value);
     cpu.status.set_carry_flag(bit0);
+}
+
+pub fn sbc(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let carry_value = cpu.status.get_carry_flag();
+    let param = cpu.memory.read(addr);
+
+    let temp = (cpu.register_a.0 as u16)
+        .wrapping_sub(param as u16)
+        .wrapping_sub(carry_value as u16);
+    let result = (temp & 0xFF) as u8;
+
+    // Setting flags
+    cpu.status.set_carry_flag(temp <= 0xFF);
+    cpu.status.set_zero_flag(result == 0);
+    cpu.status.set_overflow_flag(
+        ((cpu.register_a.0 ^ param) & 0x80 == 0) && ((cpu.register_a.0 ^ result) & 0x80 != 0),
+    );
+    cpu.status.set_negative_flag((result & 0b1000_0000) != 0);
+
+    cpu.register_a.0 = result;
 }
