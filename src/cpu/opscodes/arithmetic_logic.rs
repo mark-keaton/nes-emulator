@@ -133,3 +133,11 @@ pub fn lsr(cpu: &mut CPU, mode: &AddressingMode) -> () {
     update_zero_and_negative_flags(cpu, new_value);
     cpu.status.set_carry_flag(bit0);
 }
+
+pub fn ora(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let param = cpu.memory.read(addr);
+    cpu.register_a.0 = cpu.register_a.0 | param;
+    cpu.status.set_zero_flag(cpu.register_a.0 == 0);
+    cpu.status.set_negative_flag(cpu.register_a.bit_7_is_set());
+}

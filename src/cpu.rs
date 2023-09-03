@@ -128,6 +128,9 @@ impl CPU {
                 0x4A | 0x46 | 0x56 | 0x4E | 0x5E => {
                     opscodes::arithmetic_logic::lsr(self, &opcode.mode);
                 }
+                0x09 | 0x05 | 0x15 | 0x0D | 0x1D | 0x19 | 0x01 | 0x11 => {
+                    opscodes::arithmetic_logic::ora(self, &opcode.mode);
+                }
                 0x48 => {
                     opscodes::registers::pha(self);
                 }
@@ -584,6 +587,33 @@ mod test {
         assert_eq!(cpu.register_a.0, 0x40); // Result should be 0x40
         assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
         assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set as bit 0 of 0x81 was shifted into it
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_ora_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x02, 0x09, 0x01, 0x00]); // LDA #0x02, ORA #0x01
+        assert_eq!(cpu.register_a.0, 0x03); // Result should be 0x03 (0b0000_0010 | 0b0000_0001 = 0b0000_0011)
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_ora_negative_result() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x80, 0x09, 0x01, 0x00]); // LDA #0x80, ORA #0x01
+        assert_eq!(cpu.register_a.0, 0x81); // Result should be 0x81 (0b1000_0000 | 0b0000_0001 = 0b1000_0001)
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set due to bit 7 being 1
+    }
+
+    #[test]
+    fn test_ora_zero_result() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x00, 0x09, 0x00, 0x00]); // LDA #0x00, ORA #0x00
+        assert_eq!(cpu.register_a.0, 0x00); // Result should be 0x00
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set
         assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
     }
 
