@@ -150,6 +150,12 @@ lazy_static! {
         OpCode::new(0x2E, "ROL", 3, 4, AddressingMode::Absolute),
         OpCode::new(0x3E, "ROL", 3, 4/*+1 if page crossed*/, AddressingMode::Absolute_X),
 
+        OpCode::new(0x6A, "ROR", 2, 2, AddressingMode::Accumulator),
+        OpCode::new(0x66, "ROR", 2, 3, AddressingMode::ZeroPage),
+        OpCode::new(0x76, "ROR", 2, 4, AddressingMode::ZeroPage_X),
+        OpCode::new(0x6E, "ROR", 3, 4, AddressingMode::Absolute),
+        OpCode::new(0x7E, "ROR", 3, 4/*+1 if page crossed*/, AddressingMode::Absolute_X),
+
         OpCode::new(0x38, "SEC", 1, 2, AddressingMode::NoneAddressing),
 
         OpCode::new(0x85, "STA", 2, 3, AddressingMode::ZeroPage),

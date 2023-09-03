@@ -168,3 +168,29 @@ pub fn rol(cpu: &mut CPU, mode: &AddressingMode) -> () {
     update_zero_and_negative_flags(cpu, new_value);
     cpu.status.set_carry_flag(bit7);
 }
+pub fn ror(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let mut new_value = 0;
+    let mut bit0 = false;
+    let carry_flag = cpu.status.get_carry_flag();
+
+    match mode {
+        AddressingMode::Accumulator => {
+            let value = cpu.register_a.0;
+            bit0 = value.bit_0_is_set();
+            new_value = value >> 1;
+            new_value |= carry_flag << 7;
+            cpu.register_a.0 = new_value;
+        }
+        _ => {
+            let addr = AddressingMode::get_operand_address(cpu, mode);
+            let value = cpu.memory.read(addr);
+            bit0 = value.bit_0_is_set();
+            new_value = value >> 1;
+            new_value |= carry_flag << 7;
+            cpu.memory.write(addr, new_value);
+        }
+    }
+
+    update_zero_and_negative_flags(cpu, new_value);
+    cpu.status.set_carry_flag(bit0);
+}
