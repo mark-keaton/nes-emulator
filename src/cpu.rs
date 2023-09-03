@@ -95,6 +95,9 @@ impl CPU {
                 0xC0 | 0xC4 | 0xCC => {
                     opscodes::registers::cpy(self, &opcode.mode);
                 }
+                0xC6 | 0xD6 | 0xCE | 0xDE => {
+                    opscodes::arithmetic_logic::dec(self, &opcode.mode);
+                }
                 0xCA => {
                     opscodes::registers::dex(self);
                 }
@@ -342,6 +345,33 @@ mod test {
         assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear as A != M
         assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set as A > M
         assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_dec_basic() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA2, 0x01, 0x86, 0x10, 0xCE, 0x10, 0x00]); // LDX #0x01, STX $10, DEC $10
+        assert_eq!(cpu.memory.read(0x10), 0x00); // Memory at $10 should now be 0x00
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set as the result is 0x00
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_dec_zero_to_negative() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA2, 0x00, 0x86, 0x10, 0xCE, 0x10, 0x00]); // LDX #0x00, STX $10, DEC $10
+        assert_eq!(cpu.memory.read(0x10), 0xFF); // Memory at $10 should now be 0xFF
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set as the result is negative
+    }
+
+    #[test]
+    fn test_dec_negative() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA2, 0xFF, 0x86, 0x10, 0xCE, 0x10, 0x00]); // LDX #0xFF, STX $10, DEC $10
+        assert_eq!(cpu.memory.read(0x10), 0xFE); // Memory at $10 should now be 0xFE
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should still be set as the result remains negative
     }
 
     #[test]

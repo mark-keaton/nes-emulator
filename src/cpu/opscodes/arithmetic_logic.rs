@@ -91,3 +91,13 @@ pub fn cmp(cpu: &mut CPU, mode: &AddressingMode) -> () {
     cpu.status.set_zero_flag(cpu.register_a.0 == param);
     cpu.status.set_negative_flag(result.bit_7_is_set());
 }
+
+pub fn dec(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let param = cpu.memory.read(addr);
+    let result = param.wrapping_sub(1);
+    cpu.memory.write(addr, result);
+
+    cpu.status.set_zero_flag(result == 0);
+    cpu.status.set_negative_flag(result.bit_7_is_set());
+}
