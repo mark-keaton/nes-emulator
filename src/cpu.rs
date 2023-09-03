@@ -86,6 +86,9 @@ impl CPU {
                 0x24 | 0x2C => {
                     opscodes::arithmetic_logic::bit(self, &opcode.mode);
                 }
+                0xC9 | 0xC5 | 0xD5 | 0xCD | 0xDD | 0xD9 | 0xC1 | 0xD1 => {
+                    opscodes::arithmetic_logic::cmp(self, &opcode.mode);
+                }
                 0xE0 | 0xE4 | 0xEC => {
                     opscodes::registers::cpx(self, &opcode.mode);
                 }
@@ -312,6 +315,33 @@ mod test {
         cpu.load_and_run(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
 
         assert_eq!(cpu.register_x.0, 0xc1)
+    }
+
+    #[test]
+    fn test_cmp_equal() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x42, 0xC9, 0x42, 0x00]); // LDA #0x42, CMP #0x42
+        assert_eq!(cpu.status.bit_1_is_set(), true); // Zero flag should be set as A equals M
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set as A >= M
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
+    }
+
+    #[test]
+    fn test_cmp_less_than() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x20, 0xC9, 0x40, 0x00]); // LDA #0x20, CMP #0x40
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear as A != M
+        assert_eq!(cpu.status.bit_0_is_set(), false); // Carry flag should be clear as A < M
+        assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set due to subtraction result
+    }
+
+    #[test]
+    fn test_cmp_greater_than() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xA9, 0x50, 0xC9, 0x30, 0x00]); // LDA #0x50, CMP #0x30
+        assert_eq!(cpu.status.bit_1_is_set(), false); // Zero flag should be clear as A != M
+        assert_eq!(cpu.status.bit_0_is_set(), true); // Carry flag should be set as A > M
+        assert_eq!(cpu.status.bit_7_is_set(), false); // Negative flag should be clear
     }
 
     #[test]
