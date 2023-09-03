@@ -71,3 +71,13 @@ pub fn asl(cpu: &mut CPU, mode: &AddressingMode) -> () {
     update_zero_and_negative_flags(cpu, new_value);
     cpu.status.set_carry_flag(bit7);
 }
+
+pub fn bit(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    let addr = AddressingMode::get_operand_address(cpu, mode);
+    let param = cpu.memory.read(addr);
+    let result = cpu.register_a.0 & param;
+
+    cpu.status.set_zero_flag(result == 0);
+    cpu.status.set_overflow_flag(param.bit_6_is_set());
+    cpu.status.set_negative_flag(param.bit_7_is_set());
+}
