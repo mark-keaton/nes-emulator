@@ -91,6 +91,9 @@ impl CPU {
                 0xB0 => {
                     opscodes::control_flow::bcs(self, &opcode.mode);
                 }
+                0xF0 => {
+                    opscodes::control_flow::beq(self, &opcode.mode);
+                }
                 0x24 | 0x2C => {
                     opscodes::arithmetic_logic::bit(self, &opcode.mode);
                 }
@@ -376,6 +379,49 @@ mod test {
         // The first ADC won't set the carry flag, but the second ADC will. BCS then goes back 4 bytes to the second ADC, which still sets the carry. Execution then moves to LDA #0xAA.
         assert_eq!(cpu.register_a.0, 0xAA);
         assert_eq!(cpu.program_counter, 0x800B);
+    }
+
+    #[test]
+    fn test_beq_positive_offset_zero_flag_set() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA9, 0x01, // LDA #0x01
+            0x49, 0x01, // EOR #0x01 (XOR with itself to set zero flag)
+            0xF0, 0x02, // BEQ +2 (Skip 2 bytes ahead if zero flag is set)
+            0xA9, 0xBB, // LDA #0xBB (This will be skipped)
+            0xA9, 0xCC, // LDA #0xCC (This should be executed)
+            0x00, // BRK or another ending instruction
+        ]);
+        assert_eq!(cpu.register_a.0, 0xCC);
+        assert_eq!(cpu.program_counter, 0x800B); // PC should be right after the second LDA
+    }
+
+    #[test]
+    fn test_beq_negative_offset_zero_flag_set() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA9, 0x01, // LDA #0x01
+            0x49, 0x01, // EOR #0x01 (XOR with itself to set zero flag)
+            0xF0, 0xFE, // BEQ -2 (Skip back 2 bytes if zero flag is set)
+            0xA9, 0xCC, // LDA #0xCC (This should be executed)
+            0x00, // BRK or another ending instruction
+        ]);
+        assert_eq!(cpu.register_a.0, 0xCC); // EOR should have been executed again, resulting in zero
+        assert_eq!(cpu.program_counter, 0x8009); // PC should be right after the BEQ
+    }
+
+    #[test]
+    fn test_beq_not_taken_zero_flag_clear() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA9, 0x7F, // LDA #0x7F (Load a non-zero value)
+            0xF0,
+            0x02, // BEQ +2 (Skip 2 bytes ahead if zero flag is set; should not be taken)
+            0xA9, 0xCC, // LDA #0xCC (This should be executed)
+            0x00, // BRK or another ending instruction
+        ]);
+        assert_eq!(cpu.register_a.0, 0x7F);
+        assert_eq!(cpu.program_counter, 0x8007); // PC should be right after the LDA
     }
 
     #[test]
