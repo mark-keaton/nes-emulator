@@ -30,3 +30,15 @@ pub fn bcc(cpu: &mut CPU, mode: &AddressingMode) -> () {
             (cpu.program_counter as i16).wrapping_add(relative_displacement) as u16;
     }
 }
+
+pub fn bcs(cpu: &mut CPU, mode: &AddressingMode) -> () {
+    // TODO: Handle cycles
+    if cpu.status.get_carry_flag() != 0 {
+        let addr = AddressingMode::get_operand_address(cpu, mode);
+        // Read memory as signed i8 for negatives before casting to i16
+        let relative_displacement = cpu.memory.read(addr) as i8 as i16;
+
+        cpu.program_counter =
+            (cpu.program_counter as i16).wrapping_add(relative_displacement) as u16;
+    }
+}

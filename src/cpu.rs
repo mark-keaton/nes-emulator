@@ -88,6 +88,9 @@ impl CPU {
                 0x90 => {
                     opscodes::control_flow::bcc(self, &opcode.mode);
                 }
+                0xB0 => {
+                    opscodes::control_flow::bcs(self, &opcode.mode);
+                }
                 0x24 | 0x2C => {
                     opscodes::arithmetic_logic::bit(self, &opcode.mode);
                 }
@@ -323,6 +326,56 @@ mod test {
         // On the second pass, 0x80 + 0x01 = 0x81 does set the carry flag, so BCC isn't taken, and execution continues to LDA #0xAA.
         assert_eq!(cpu.register_a.0, 0xAA);
         assert_eq!(cpu.program_counter, 0x8009);
+    }
+
+    #[test]
+    fn test_bcs_carry_set_by_adc() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA9, 0xFF, // LDA #0xFF (Load A with 0xFF)
+            0x69, 0x01, // ADC #0x01 (Add 1, which will cause a carry due to overflow)
+            0xB0, 0x02, // BCS +2 (Go forward 4 bytes if carry is set)
+            0xA9, 0x11, // LDA #0x11
+            0xA9, 0xAA, // LDA #0xAA
+            0x00, // BRK or another ending instruction
+        ]);
+
+        // 0xFF + 0x01 = 0x00 with the carry flag set. Therefore, BCS is taken and skips to LDA #0xAA.
+        assert_eq!(cpu.register_a.0, 0xAA);
+        assert_eq!(cpu.program_counter, 0x800B);
+    }
+
+    #[test]
+    fn test_bcs_carry_not_set() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA9, 0x7F, // LDA #0x7F (Load A with 0x7F)
+            0x69, 0x01, // ADC #0x01 (Add 1, which won't cause a carry)
+            0xB0, 0x02, // BCS +2 (Go forward 2 bytes if carry is set)
+            0xA9, 0x11, // LDA #0x11
+            0x00, // BRK or another ending instruction
+        ]);
+
+        // 0x7F + 0x01 = 0x80 without setting the carry flag. Therefore, BCS isn't taken and the LDA #0x11 is executed.
+        assert_eq!(cpu.register_a.0, 0x11);
+        assert_eq!(cpu.program_counter, 0x8009);
+    }
+
+    #[test]
+    fn test_bcs_negative_offset_set_carry_with_adc() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA9, 0x7F, // LDA #0x7F (Load A with 0x7F)
+            0x69, 0x01, // ADC #0x01 (Add 1, which won't cause a carry)
+            0x69, 0x80, // ADC #0x80 (Add 128, which will cause a carry due to overflow)
+            0xB0, 0xFC, // BCS -4 (Go back 4 bytes if carry is set)
+            0xA9, 0xAA, // LDA #0xAA
+            0x00, // BRK or another ending instruction
+        ]);
+
+        // The first ADC won't set the carry flag, but the second ADC will. BCS then goes back 4 bytes to the second ADC, which still sets the carry. Execution then moves to LDA #0xAA.
+        assert_eq!(cpu.register_a.0, 0xAA);
+        assert_eq!(cpu.program_counter, 0x800B);
     }
 
     #[test]
