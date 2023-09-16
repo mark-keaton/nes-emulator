@@ -1,4 +1,4 @@
-use crate::cpu::opscodes::addressing_mode::AddressingMode;
+use crate::cpu::addressing_mode::AddressingMode;
 use crate::cpu::Register;
 use crate::cpu::CPU;
 use crate::util::shared::{AdjustBy1, Comparison};

@@ -1,6 +1,6 @@
 use crate::cpu::CPU;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum AddressingMode {
     Accumulator,
@@ -14,6 +14,7 @@ pub enum AddressingMode {
     Indirect_X,
     Indirect_Y,
     NoneAddressing,
+    Relative,
 }
 
 impl AddressingMode {
@@ -64,6 +65,7 @@ impl AddressingMode {
                 let deref = deref_base.wrapping_add(cpu.register_y.0 as u16);
                 deref
             }
+            AddressingMode::Relative => cpu.program_counter,
 
             _ => {
                 panic!("mode {:?} is not supported", mode);

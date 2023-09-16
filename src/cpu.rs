@@ -1,9 +1,11 @@
+use crate::cpu::addressing_mode::AddressingMode;
 use crate::cpu::memory::Memory;
 use crate::cpu::opscodes::{OpCode, OPCODES_MAP};
 use crate::cpu::processor_status::ProcessorStatus;
 use crate::cpu::register::Register;
 use std::collections::HashMap;
 
+mod addressing_mode;
 mod memory;
 mod opscodes;
 mod processor_status;
@@ -83,8 +85,14 @@ impl CPU {
                 0x0A | 0x06 | 0x16 | 0x0E | 0x1E => {
                     opscodes::arithmetic_logic::asl(self, &opcode.mode);
                 }
+                0x90 => {
+                    opscodes::control_flow::bcc(self, &opcode.mode);
+                }
                 0x24 | 0x2C => {
                     opscodes::arithmetic_logic::bit(self, &opcode.mode);
+                }
+                0x18 => {
+                    opscodes::status_register::clc(self);
                 }
                 0xC9 | 0xC5 | 0xD5 | 0xCD | 0xDD | 0xD9 | 0xC1 | 0xD1 => {
                     opscodes::arithmetic_logic::cmp(self, &opcode.mode);
@@ -176,7 +184,9 @@ impl CPU {
                 _ => todo!(),
             }
 
-            if program_counter_state == self.program_counter {
+            if program_counter_state == self.program_counter
+                || opcode.mode == AddressingMode::Relative
+            {
                 self.program_counter += (opcode.len - 1) as u16;
             }
         }
@@ -282,6 +292,37 @@ mod test {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xA9, 0x40, 0x0A, 0x00]); // LDA #0x40, ASL A
         assert_eq!(cpu.status.bit_7_is_set(), true); // Negative flag should be set as result's bit 7 is set
+    }
+
+    #[test]
+    fn test_bcc_branch_not_taken() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0x38, 0x90, 0x02, 0xA9, 0xFF, 0x00]); // SEC (set carry), BCC +2, LDA #0xFF
+        assert_eq!(cpu.register_a.0, 0xFF); // Since BCC wasn't taken, LDA should be executed.
+    }
+
+    #[test]
+    fn test_bcc_branch_taken() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0x18, 0x90, 0x02, 0xA9, 0xFF, 0xA9, 0xAA, 0x00]); // CLC (clear carry), BCC +2, LDA #0xFF, LDA #0xAA
+        assert_eq!(cpu.register_a.0, 0xAA); // BCC should be taken, skipping the first LDA and executing the second LDA
+    }
+
+    #[test]
+    fn test_bcc_negative_offset_set_carry_with_adc() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![
+            0xA9, 0xFE, // LDA #0xFE (Load A with 0xFE)
+            0x69, 0x01, // ADC #0x01 (Add 1, which won't overflow with the initial value)
+            0x90, 0xFC, // BCC -4 (Go back 4 bytes if carry is clear)
+            0xA9, 0xAA, // LDA #0xAA
+            0x00, // BRK or another ending instruction
+        ]);
+
+        // On the first pass, 0x7F + 0x01 = 0x80 doesn't set the carry flag, so BCC is taken, going back 6 bytes.
+        // On the second pass, 0x80 + 0x01 = 0x81 does set the carry flag, so BCC isn't taken, and execution continues to LDA #0xAA.
+        assert_eq!(cpu.register_a.0, 0xAA);
+        assert_eq!(cpu.program_counter, 0x8009);
     }
 
     #[test]
